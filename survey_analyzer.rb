@@ -4,13 +4,14 @@ require_relative 'survey_analyzer/graph_exporter'
 
 class SurveyAnalyzer
 
-  attr_reader :config, :old_data, :data, :min, :max, :titles
+  attr_reader :config, :old_data, :data, :min, :max, :titles, :data_from_file
 
   def initialize
     @config = {
+      header: (1..47).to_a,
       column_for_grouping: 2, # later [2,3,[2,3]],
       columns_to_evaluate: (4..12).to_a + (14..22).to_a + (24..32).to_a + (34..46).to_a,
-      columns_to_extract: [23, 33, 47],
+      columns_to_extract: [13, 23, 33, 47],
       answers: ["1", "2", "3", "4"],
       answers_mapping: {
         "1" => -2,
@@ -32,12 +33,12 @@ class SurveyAnalyzer
         "Marketing (FR + INTER) / Video - Célia" => "Marketing", # TCS 1
       },
     }
-    old_data_from_file = DataFromFile.from_path("data/take_care_survey1.csv", "csv", (1..46).to_a)
-    @old_data = count_by(old_data_from_file)
-    data_from_file = DataFromFile.from_path("data/take_care_survey2.csv", "csv", (1..46).to_a)
-    @data = count_by(data_from_file)
+    @old_data_from_file = DataFromFile.from_path("data/take_care_survey2.csv", "csv", @config[:header])
+    @old_data = count_by(@old_data_from_file)
+    @data_from_file = DataFromFile.from_path("data/take_care_survey3.csv", "csv", @config[:header])
+    @data = count_by(@data_from_file)
     @min, @max = extract_min_max_group_per_question(@data)
-    @titles = data_from_file.titles
+    @titles = @data_from_file.titles
   end
 
   def sanitize_group_name(group_name)
@@ -90,4 +91,5 @@ survey = SurveyAnalyzer.new
 # TableExporter.average_for_groups_and_global(survey)
 # TableExporter.promoter_percent_for_groups_and_global(survey)
 GraphExporter.for_groups_and_global(survey)
+TableExporter.verbatims(survey)
 
