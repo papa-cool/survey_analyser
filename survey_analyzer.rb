@@ -20,18 +20,6 @@ class SurveyAnalyzer
         "4" => +2,
       },
       promoter_answers: ["3", "4"],
-      groups_mapping: {
-        "Innovation - Jérémy" => "Innovation",
-        "Sales (FR + INTER)  - Maxime" => "Sales", # TCS 1-2
-        "HR / Legal - Anne/Clémence" => "HR", # TCS 1-2
-        "Product / Data / Design - Arthur" => "Product", # TCS 1-2
-        "Tech - Samuel" => "Tech", # TCS 1-2
-        "University (FR + INTER) - Tristan" => "University", # TCS 1-2
-        "Germany - Caroline" => "Germany", # TCS 1-2
-        "Finance / Salesforce / Sales Efficiency - Gregory" => "Finance", # TCS 1-2
-        "Marketing (FR) / Video - Elodie" => "Marketing", # TCS 2
-        "Marketing (FR + INTER) / Video - Célia" => "Marketing", # TCS 1
-      },
     }
     @old_data_from_file = DataFromFile.from_path("data/take_care_survey2.csv", "csv", @config[:header])
     @old_data = count_by(@old_data_from_file)
@@ -42,7 +30,7 @@ class SurveyAnalyzer
   end
 
   def sanitize_group_name(group_name)
-    config[:groups_mapping].fetch(group_name, group_name)
+    group_name.split(" ").first
   end
 
   # Organize result by question counting by group and answer
