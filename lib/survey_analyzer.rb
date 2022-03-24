@@ -1,6 +1,6 @@
-require_relative 'survey_analyzer/data_from_file'
-require_relative 'survey_analyzer/table_exporter'
-require_relative 'survey_analyzer/graph_exporter'
+require_relative "survey_analyzer/data_from_file"
+require_relative "survey_analyzer/table_exporter"
+require_relative "survey_analyzer/graph_exporter"
 
 class SurveyAnalyzer
 
@@ -8,10 +8,10 @@ class SurveyAnalyzer
 
   def initialize
     @config = {
-      header: (1..47).to_a,
+      header: (1..51).to_a,
       column_for_grouping: 2, # later [2,3,[2,3]],
-      columns_to_evaluate: (4..12).to_a + (14..22).to_a + (24..32).to_a + (34..46).to_a,
-      columns_to_extract: [13, 23, 33, 47],
+      columns_to_evaluate: (4..12).to_a + (14..22).to_a + (24..32).to_a + (34..46).to_a + (48..50).to_a,
+      columns_to_extract: [13, 23, 33, 47, 51],
       answers: ["1", "2", "3", "4"],
       answers_mapping: {
         "1" => -2,
@@ -21,10 +21,21 @@ class SurveyAnalyzer
       },
       promoter_answers: ["3", "4"],
     }
-    @old_data_from_file = DataFromFile.from_path("data/take_care_survey2.csv", "csv", @config[:header])
-    @old_data = count_by(@old_data_from_file)
-    @data_from_file = DataFromFile.from_path("data/take_care_survey3.csv", "csv", @config[:header])
+
+    old_file_names = Dir.glob("data/*").sort.reverse # => ["data/take_care_survey4.csv", "data/take_care_survey3.csv", "data/take_care_survey2.csv", ...]
+    puts "Will process " + old_file_names.inspect
+    current_file_name = old_file_names.shift # => "data/take_care_survey4.csv"
+
+    @old_data = old_file_names.map do |file_name|
+      puts "Process " + file_name
+      count_by(DataFromFile.from_path(file_name, "csv", @config[:header]))
+    end
+
+    puts "Process " + current_file_name
+    @data_from_file = DataFromFile.from_path(current_file_name, "csv", @config[:header])
     @data = count_by(@data_from_file)
+
+    puts "extract_min_max_group_per_question"
     @min, @max = extract_min_max_group_per_question(@data)
     @titles = @data_from_file.titles
   end
@@ -43,7 +54,7 @@ class SurveyAnalyzer
   def count_by(row_data)
     counted_data = Hash.new do |questions, column_key|
       questions[column_key] = Hash.new do |count_by_group_by_answer, grouping_key|
-        count_by_group_by_answer[grouping_key] = Hash.new { |count_by_answer, answer_key| count_by_answer[answer_key] = 0 }
+        count_by_group_by_answer[grouping_key] = Hash.new { |count_by_answer, answer_key| count_by_answer[answer_key.to_s] = 0 }
       end
     end
 
@@ -74,10 +85,3 @@ class SurveyAnalyzer
   end
 
 end
-
-survey = SurveyAnalyzer.new
-# TableExporter.average_for_groups_and_global(survey)
-# TableExporter.promoter_percent_for_groups_and_global(survey)
-GraphExporter.for_groups_and_global(survey)
-TableExporter.verbatims(survey)
-

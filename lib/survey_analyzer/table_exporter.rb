@@ -1,8 +1,9 @@
-require_relative 'calculate'
+require_relative "calculate"
 
 module TableExporter
 
   def average_for_groups_and_global(survey)
+    puts "Process average"
     groups = survey.data.first.last.keys
 
     CSV.open("results/average_for_groups_and_global.csv", "wb") do |csv|
@@ -15,6 +16,7 @@ module TableExporter
   module_function :average_for_groups_and_global
 
   def promoter_percent_for_groups_and_global(survey)
+    puts "Process promoter"
     groups = survey.data.first.last.keys
 
     CSV.open("results/promoter_percent_for_groups_and_global.csv", "wb") do |csv|
@@ -27,13 +29,13 @@ module TableExporter
   module_function :promoter_percent_for_groups_and_global
 
   def verbatims(survey)
-    puts survey.titles
+    puts "Process verbatims"
     CSV.open("results/verbatims.csv", "wb") do |csv|
-      csv << survey.titles.slice(survey.config[:column_for_grouping], *survey.config[:columns_to_extract]).values.map {|v| v.split(" | ").last}
+      csv << survey.titles.slice(survey.config[:column_for_grouping], *survey.config[:columns_to_extract]).values.map {|v| v.split("|").last.strip}
 
       survey.data_from_file.each do |row_hash|
         verbatim_values = row_hash.slice(*survey.config[:columns_to_extract]).values
-        next unless verbatim_values.any? {|v| !v.empty?}
+        next unless verbatim_values.any? {|v| !v.to_s.empty?}
 
         csv << [
           survey.sanitize_group_name(row_hash[survey.config[:column_for_grouping]]),
